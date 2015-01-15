@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        background-color: #1f1f1f;
+      }
+      #myCanvas{
+        background-color: #1f1f1f;
+      }
+    </style>
+  </head> 
+  <body>
+    <canvas id="myCanvas"></canvas>
+    <script>
+      window.requestAnimFrame = (function(callback) {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        };
+      })();
+
+
+      var canvas = document.getElementById('myCanvas');
+      var context = canvas.getContext('2d');
+      window.onresize = redraw;
+      var selectedImage = {key: "", in_zoom: false};
+
+      function redraw(){
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.canvas.width  = window.innerWidth - 40;
+        context.canvas.height = window.innerHeight - 20;
+        var hoffset = 40;
+        var voffset = 40;
+        var h = 180;
+        //var width = window.innerWidth / Object.keys(images).length;
+        //console.log(width)
+        for(var i in images){
+          var img = images[i].img;
+          var k = h / img.height;
+          var w = img.width * k;
+          if(hoffset + w > window.innerWidth){
+            voffset += h;
+            hoffset = 40;
+          }
+          images[i].rect = {
+            y0: voffset,
+            x0: hoffset,
+            x1: w,
+            y1: h
+          }
+          // drawImage(image, hoffset, voffset, w, h)
+          hoffset += w;
+        }
+
+        for(var i in images){
+            drawImage(i)
+        }
+
+        s = "Use -> and <- keys for item selection; Enter - toggle zoom";
+        context.font = '20pt Calibri';
+        // context.textAlign = 'right';
+        context.fillStyle = '#1f1f1f';
+        // context.lineWidth = 4;
+        // context.strokeText(s, 40, window.innerHeight - 24);
+        context.fillStyle = '#eee';
+        context.fillText(s, 40, window.innerHeight - 20 - 8);
+
+      }
+
+      var images = {};
+
+      // do cool things with the context
+      function loadImages(sources, callback) {
+        var loadedImages = 0;
+        var numImages = 0;
+        // get num of sources
+        for(var src in sources) {
+          numImages++;
+        }
+        for(var src in sources) {
+          images[src] = {}
+          images[src].img = new Image();
+          images[src].img.onload = function() {
+            if(++loadedImages >= numImages) {
+              callback(images);
+            }
+          };
+          images[src].img.src = sources[src];
+          images[src].title = src;
+        }
+      }
+
+      var sources = {
+        stairs: 'images/one.jpg',
+        sky: 'images/two.jpg',
+        view: 'images/three.jpg',
+        shadowrun: 'images/four.jpg',
+        light: 'images/five.jpg',
+        highway: 'images/six.jpg',
+        poster: 'images/seven.jpg',
+        bridge: 'images/eight.jpg',
+        rain: 'images/nine.jpg',
+      };
+
+      function drawImage(key){
+        if(typeof key == "string"){
+          var image = images[key];
+        }else{
+          image = key;
+        }
+        var rect = image.rect
+        
+        context.drawImage(image.img, rect.x0, rect.y0, rect.x1, rect.y1);
+      }
+
+      function zoom(key, startTime, in_zoom){
+        var image = images[key];
+        var rect = image.rect;
+        var time = (new Date()).getTime() - startTime;
+        var speed = 10;
+        if(!in_zoom){
+          var oz = 1.2;
+          var z = (oz - 1) * time/1000 * speed;
+          var hz = z;
+          var vz = z;
+
+          var ti = {
+            img: image.img,
+            rect:{
+              x0: rect.x0 - (rect.x1*hz)/2,
+              y0: rect.y0 - (rect.y1*hz)/2,
+              x1: rect.x1 + (rect.x1*hz),
+              y1: rect.y1 + (rect.y1*hz),
+            },
+            title: image.title
+          }
+        }else{
+          var oz = (window.innerWidth - 40)/ rect.x1 ;
+          console.log(oz, (window.innerWidth - 40), rect.x1)
+          var z = (oz - 1) * time/1000 * speed;
+          while(rect.y1 + (rect.y1*z) > (window.innerHeight - 96) || rect.x1 + (rect.x1*z) > (window.innerWidth - 80)){
+            oz -= 0.05;
+            z = (oz - 1) * time/1000 * speed;
+            console.log(oz, z)
+          }
+
+          var ti = {
+            img: image.img,
+            rect:{
+              x0: 40,
+              y0: 40,
+              x1: rect.x1 + (rect.x1*z),
+              y1: rect.y1 + (rect.y1*z),
+            },
+            title: image.title
+          }
+        }
+
+        context.save();
+
+        context.shadowColor = '#111';
+        context.shadowBlur = 20;
+        context.shadowOffsetX = 10;
+        context.shadowOffsetY = 10;
+
+        drawImage(ti);
+        rect = ti.rect;
+        context.restore();
+
+        context.beginPath();
+        th = 30;
+        context.rect(rect.x0, rect.y0 + rect.y1 - th, rect.x1, th);
+      	context.fillStyle = "rgba(0,0,0,0.8)";
+      	context.fill();
+      	// context.restore()
+
+      	s = image.title + " [" + image.img.width + "x" + image.img.height + "]"
+        context.font = '16pt Calibri';
+        context.textAlign = 'right';
+        context.fillStyle = '#1f1f1f';
+        context.lineWidth = 4;
+        context.strokeText(s, rect.x0 + rect.x1 - 8, rect.y0 + rect.y1 - 8);
+        context.fillStyle = '#eee';
+        context.font = '16pt Calibri';
+        context.fillText(s, rect.x0 + rect.x1 - 8, rect.y0 + rect.y1 - 8);
+
+        if(z >= oz - 1){
+          return;
+        }
+
+        requestAnimFrame(function() {
+          zoom(key, startTime, in_zoom);
+        });
+
+      }
+
+      function selectImage(key, in_zoom){
+      	redraw()
+        var startTime = (new Date()).getTime();
+        zoom(key, startTime, in_zoom);
+      }
+
+      loadImages(sources, function(images) {
+        redraw()
+      });
+
+      function next(){
+        if(selectedImage.key == "" || Object.keys(images).indexOf(selectedImage.key)+1 == Object.keys(images).length){
+          selectedImage.key = Object.keys(images)[0];
+        }else{
+          selectedImage.key = Object.keys(images)[Object.keys(images).indexOf(selectedImage.key)+1];
+        }
+        selectImage(selectedImage.key, selectedImage.in_zoom);
+      }
+      function prev(){
+        if(selectedImage.key == "" || Object.keys(images).indexOf(selectedImage.key) == 0){
+          selectedImage.key = Object.keys(images).slice(-1)[0];
+        }else{
+          console.log(Object.keys(images)[Object.keys(images).indexOf(selectedImage.key) - 1], Object.keys(images).indexOf(selectedImage.key))
+          selectedImage.key = Object.keys(images)[Object.keys(images).indexOf(selectedImage.key) - 1];
+        }
+        selectImage(selectedImage.key, selectedImage.in_zoom);
+      }
+
+      function show(){
+        selectedImage.in_zoom = !selectedImage.in_zoom;
+        selectImage(selectedImage.key, selectedImage.in_zoom);
+      }
+
+      document.addEventListener('keydown', function(e) {
+          if(e.keyIdentifier == "Right"){
+            next();
+          }
+          if(e.keyIdentifier == "Left"){
+            prev();
+          }
+          if(e.keyIdentifier == "Enter"){
+          	show();
+          }
+      }); 
+
+    </script>
+  </body>
+</html>  
