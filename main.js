@@ -2,7 +2,6 @@
  * TODO:
  *  zoomout animation
  *  zoomin animation from current image position
- *  button signs instead chars
  *  optimize full view animation
  */
 
@@ -43,10 +42,27 @@ function redraw() {
     }
 
     bgctx.font = '20pt Calibri';
-    var s = "Use arrow keys for item selection; Enter - toggle zoom";
+    var s = "Use      /     /     /      for selection;        for toggle zoom";
+    bgctx.fillStyle = '#222233';
+    var x = 90;
+    bgctx.beginPath();
+    for(i = 0; i < 4; i++) {
+        bgctx.rect(x, window.innerHeight - 48, 24, 24);
+        x += 40;
+    }
+    bgctx.rect(400, window.innerHeight - 48, 24, 24);
+    bgctx.fill();
     bgctx.fillStyle = '#eee';
-    bgctx.fillText(s, 40, window.innerHeight - 20 - 8);
-//    window.defaultState = bg.toDataURL("image/png");
+    x = 91;
+    for(i = 0; i < 4; i++) {
+        var c = ["\u25B6", "\u25C0", "\u25BC", "\u25B2"][i];
+        bgctx.fillText(c, x, window.innerHeight - 28, 24, 24);
+        x += 40;
+    }
+    bgctx.font = '14pt Calibri';
+    bgctx.fillText("\u21B5", 402, window.innerHeight - 28, 24, 24);
+    bgctx.font = '20pt Calibri';
+    bgctx.fillText(s, 40, window.innerHeight - 28);
 
     selectedImage.in_zoom = false;
     selectImage(selectedImage.key, selectedImage.in_zoom);
