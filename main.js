@@ -14,14 +14,14 @@ window.onresize = recalc;
 var selectedImage = {key: "", in_zoom: false};
 window.defaultState = "";
 
-function reset() {
-    bgctx.clearRect(0, 0, bg.width, bg.height);
-    var imageObj = new Image();
-    imageObj.onload = function () {
-        bgctx.drawImage(this, 0, 0);
-    };
-    imageObj.src = window.defaultState;
-}
+//function reset() {
+//    bgctx.clearRect(0, 0, bg.width, bg.height);
+//    var imageObj = new Image();
+//    imageObj.onload = function () {
+//        bgctx.drawImage(this, 0, 0);
+//    };
+//    imageObj.src = window.defaultState;
+//}
 
 function redraw() {
     bgctx.clearRect(0, 0, bg.width, bg.height);
@@ -37,8 +37,11 @@ function redraw() {
 //    window.defaultState = bg.toDataURL("image/png");
 
     selectedImage.in_zoom = false;
-    next();
-    prev();
+    if(selectedImage.key != "") {
+        selectImage(selectedImage.key, selectedImage.in_zoom);
+    }else{
+        next();
+    }
 }
 function recalc() {
     bgctx.canvas.width = window.innerWidth - 40;
@@ -159,6 +162,9 @@ function zoom(key, startTime, in_zoom) {
             title: image.title
         }
     }
+    if (z >= oz - 1) {
+        return;
+    }
 
     fgctx.clearRect(0, 0, bg.width, bg.height);
     fgctx.save();
@@ -186,10 +192,6 @@ function zoom(key, startTime, in_zoom) {
     fgctx.fillStyle = '#eee';
     fgctx.font = '16pt Calibri';
     fgctx.fillText(s, rect.x0 + rect.x1 - 8, rect.y0 + rect.y1 - 8);
-
-    if (z >= oz - 1) {
-        return;
-    }
 
     requestAnimFrame(function () {
         zoom(key, startTime, in_zoom);
