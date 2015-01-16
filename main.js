@@ -20,18 +20,12 @@ var fg = document.getElementById('layer2');
 var bgctx = bg.getContext('2d');
 var fgctx = fg.getContext('2d');
 
-var s = "Loading...";
-bgctx.font = '20pt Calibri';
-bgctx.fillStyle = '#1f1f1f';
-bgctx.fillStyle = '#eee';
-bgctx.fillText(s, (window.innerWidth - 40)/ 2, (window.innerHeight - 40)/2);
-
 window.onresize = recalc;
 window.defaultState = "";
 window.h = 180;
 var selectedImage = {key: "", in_zoom: false, col: 0, row: 0};
 var nav = [];
-
+var lastRect = {};
 
 //function reset() {
 //    bgctx.clearRect(0, 0, bg.width, bg.height);
@@ -48,14 +42,16 @@ function redraw() {
         drawImage(i, bgctx);
     }
 
-    var s = "Use arrow keys for item selection; Enter - toggle zoom";
     bgctx.font = '20pt Calibri';
+    var s = "Use arrow keys for item selection; Enter - toggle zoom";
     bgctx.fillStyle = '#eee';
     bgctx.fillText(s, 40, window.innerHeight - 20 - 8);
 //    window.defaultState = bg.toDataURL("image/png");
 
     selectedImage.in_zoom = false;
     selectImage(selectedImage.key, selectedImage.in_zoom);
+    fgctx.textAlign = 'right';
+    fgctx.font = '16pt Calibri';
 }
 function recalc() {
     nav = [];
@@ -162,6 +158,13 @@ function drawImage(key, ctx) {
     }
     var rect = image.rect;
     ctx.drawImage(image.img, rect.x0, rect.y0, rect.width, rect.height);
+    var spread = 40;
+    lastRect = {
+        x0: rect.x0 - spread,
+        y0: rect.y0 - spread,
+        width: rect.width + spread*2,
+        height: rect.height + spread*2
+    };
 }
 
 function zoom(key, startTime, in_zoom) {
@@ -181,10 +184,10 @@ function zoom(key, startTime, in_zoom) {
         ti = {
             img: image.img,
             rect: {
-                x0: rect.x0 - (rect.width * z) / 2,
-                y0: rect.y0 - (rect.height * z) / 2,
-                width: rect.width * (1 + z),
-                height: rect.height * (1 + z)
+                x0: Math.round(rect.x0 - (rect.width * z) / 2),
+                y0: Math.round(rect.y0 - (rect.height * z) / 2),
+                width: Math.round(rect.width * (1 + z)),
+                height: Math.round(rect.height * (1 + z))
             },
             title: image.title
         }
@@ -197,8 +200,8 @@ function zoom(key, startTime, in_zoom) {
             rect: {
                 x0: 40,
                 y0: 40,
-                width: rect.width * (1 + z),
-                height: rect.height * (1 + z)
+                width: Math.round(rect.width * (1 + z)),
+                height: Math.round(rect.height * (1 + z))
             },
             title: image.title
         }
@@ -207,7 +210,8 @@ function zoom(key, startTime, in_zoom) {
         return;
     }
 
-    fgctx.clearRect(0, 0, bg.width, bg.height);
+    //fgctx.clearRect(0, 0, bg.width, bg.height);
+    fgctx.clearRect(lastRect.x0, lastRect.y0, lastRect.width, lastRect.height)
     fgctx.save();
 
     fgctx.shadowColor = '#0a0a0a';
@@ -225,13 +229,7 @@ function zoom(key, startTime, in_zoom) {
     fgctx.fill();
 
     var s = image.title + " [" + image.img.width + "x" + image.img.height + "]";
-    fgctx.font = '16pt Calibri';
-    fgctx.textAlign = 'right';
-//    fgctx.fillStyle = '#1f1f1f';
-//    fgctx.lineWidth = 4;
-//    fgctx.strokeText(s, rect.x0 + rect.width - 8, rect.y0 + rect.height - 8);
     fgctx.fillStyle = '#eee';
-    fgctx.font = '16pt Calibri';
     fgctx.fillText(s, rect.x0 + rect.width - 8, rect.y0 + rect.height - 8);
 
     requestAnimFrame(function () {

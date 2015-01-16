@@ -5,11 +5,10 @@
       <paths name="averr.in">
         <serverdata>
           <mappings>
-            <mapping deploy="/canvas_gallery" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="canvas_gallery" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
     </serverData>
   </component>
 </project>
-
