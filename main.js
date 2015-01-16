@@ -1,7 +1,6 @@
 /*
  * TODO:
  *  zoomout animation
- *  zoomin animation from current image position
  *  optimize full view animation
  */
 
@@ -211,13 +210,16 @@ function zoom(key, startTime, in_zoom) {
         oz = image.oz;
         speed = 3;
         z = (oz - 1) * time / 1000 * speed;
+        var w = Math.round(rect.width * (1 + z));
+        var h = Math.round(rect.height * (1 + z));
+        var k = (time / 1000 * speed);
         ti = {
             img: image.img,
             rect: {
-                x0: 40,
-                y0: 40,
-                width: Math.round(rect.width * (1 + z)),
-                height: Math.round(rect.height * (1 + z))
+                x0: image.rect.x0 + (((window.innerWidth - 20)/2 - w/2) - image.rect.x0) * k,
+                y0: image.rect.y0 + (((window.innerHeight - 20)/2 - h/2) - image.rect.y0) * k,
+                width: w,
+                height: h
             },
             title: image.title
         }
