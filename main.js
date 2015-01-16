@@ -34,7 +34,11 @@ function redraw() {
     bgctx.fillStyle = '#1f1f1f';
     bgctx.fillStyle = '#eee';
     bgctx.fillText(s, 40, window.innerHeight - 20 - 8);
-    window.defaultState = bg.toDataURL("image/png");
+//    window.defaultState = bg.toDataURL("image/png");
+
+    selectedImage.in_zoom = false;
+    next();
+    prev();
 }
 function recalc() {
     bgctx.canvas.width = window.innerWidth - 40;
@@ -53,12 +57,17 @@ function recalc() {
             voffset += h;
             hoffset = 40;
         }
+        var oz = (window.innerWidth - 200) / w;
+        if ( h*oz > window.innerHeight - 100) {
+            oz = (window.innerHeight - 100) / h;
+        }
         images[i].rect = {
             y0: voffset,
             x0: hoffset,
             x1: w,
             y1: h
         };
+        images[i].oz = oz;
         hoffset += w;
     }
 
@@ -136,21 +145,16 @@ function zoom(key, startTime, in_zoom) {
             title: image.title
         }
     } else {
-        oz = (window.innerWidth - 200) / rect.x1;
+        oz = image.oz;
         speed = 3;
         z = (oz - 1) * time / 1000 * speed;
-        if (rect.y1 + (rect.y1 * z) > (window.innerHeight - 100)) {
-            oz = (window.innerHeight - 100) / rect.y1;
-            z = (oz - 1) * time / 1000 * speed;
-        }
-
         ti = {
             img: image.img,
             rect: {
                 x0: 40,
                 y0: 40,
                 x1: rect.x1 + (rect.x1 * z),
-                y1: rect.y1 + (rect.y1 * z),
+                y1: rect.y1 + (rect.y1 * z)
             },
             title: image.title
         }
@@ -200,7 +204,6 @@ function selectImage(key, in_zoom) {
 
 loadImages(sources, function (images) {
     recalc();
-    next();
 });
 
 function next() {
