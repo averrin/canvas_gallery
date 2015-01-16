@@ -1,7 +1,9 @@
 /*
  * TODO:
  *  zoomout animation
+ *  zoomin animation from current image position
  *  button signs instead chars
+ *  optimize full view animation
  */
 
 
@@ -25,10 +27,10 @@ bgctx.fillStyle = '#eee';
 bgctx.fillText(s, (window.innerWidth - 40)/ 2, (window.innerHeight - 40)/2);
 
 window.onresize = recalc;
-var selectedImage = {key: "", in_zoom: false, col: 0, row: 0};
 window.defaultState = "";
-var nav = [];
 window.h = 180;
+var selectedImage = {key: "", in_zoom: false, col: 0, row: 0};
+var nav = [];
 
 
 //function reset() {
@@ -48,7 +50,6 @@ function redraw() {
 
     var s = "Use arrow keys for item selection; Enter - toggle zoom";
     bgctx.font = '20pt Calibri';
-    bgctx.fillStyle = '#1f1f1f';
     bgctx.fillStyle = '#eee';
     bgctx.fillText(s, 40, window.innerHeight - 20 - 8);
 //    window.defaultState = bg.toDataURL("image/png");
@@ -209,7 +210,7 @@ function zoom(key, startTime, in_zoom) {
     fgctx.clearRect(0, 0, bg.width, bg.height);
     fgctx.save();
 
-    fgctx.shadowColor = '#111';
+    fgctx.shadowColor = '#0a0a0a';
     fgctx.shadowBlur = 20;
     fgctx.shadowOffsetX = 10;
     fgctx.shadowOffsetY = 10;
