@@ -17,6 +17,13 @@ var bg = document.getElementById('layer1');
 var fg = document.getElementById('layer2');
 var bgctx = bg.getContext('2d');
 var fgctx = fg.getContext('2d');
+
+var s = "Loading...";
+bgctx.font = '20pt Calibri';
+bgctx.fillStyle = '#1f1f1f';
+bgctx.fillStyle = '#eee';
+bgctx.fillText(s, (window.innerWidth - 40)/ 2, (window.innerHeight - 40)/2);
+
 window.onresize = recalc;
 var selectedImage = {key: "", in_zoom: false, col: 0, row: 0};
 window.defaultState = "";
@@ -73,9 +80,9 @@ function recalc() {
             m += 1;
             n = 0;
         }
-        var oz = (window.innerWidth - 160) / w;
-        if ( h*oz > window.innerHeight - 100) {
-            oz = (window.innerHeight - 100) / h;
+        var oz = (window.innerHeight - 100) / h;
+        if ( w*oz > window.innerWidth - 160) {
+            oz = (window.innerWidth - 160) / w;
         }
         images[i].rect = {
             y0: voffset,
@@ -97,7 +104,7 @@ function recalc() {
     }
 
     if(window.h > (window.innerHeight - 20) / (m+1)){
-        window.h = (window.innerHeight - 20) / (m+1);
+        window.h = (window.innerHeight - 20) / (m+1); // too small
         recalc()
     }
 
@@ -246,6 +253,10 @@ function next() {
     i.col += 1;
     if(i.col > nav[i.row].length - 1){
         i.col = 0;
+        i.row += 1;
+        if(i.row > nav.length - 1){
+            i.row = 0;
+        }
     }
     i.key = nav[i.row][i.col];
     selectImage(i.key, i.in_zoom);
@@ -254,6 +265,10 @@ function prev() {
     var i = selectedImage;
     i.col -= 1;
     if(i.col < 0){
+        i.row -= 1;
+        if(i.row < 0){
+            i.row = nav.length - 1;
+        }
         i.col = nav[i.row].length - 1;
     }
     i.key = nav[i.row][i.col];
