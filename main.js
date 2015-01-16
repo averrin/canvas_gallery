@@ -24,6 +24,7 @@ window.defaultState = "";
 //}
 
 function redraw() {
+    console.log("REDRAW");
     bgctx.clearRect(0, 0, bg.width, bg.height);
     for (var i in images) {
         drawImage(i, bgctx);
@@ -44,6 +45,7 @@ function redraw() {
     }
 }
 function recalc() {
+    console.log("RECALC");
     bgctx.canvas.width = window.innerWidth - 40;
     bgctx.canvas.height = window.innerHeight - 20;
     fgctx.canvas.width = window.innerWidth - 40;
@@ -60,15 +62,15 @@ function recalc() {
             voffset += h;
             hoffset = 40;
         }
-        var oz = (window.innerWidth - 200) / w;
+        var oz = (window.innerWidth - 160) / w;
         if ( h*oz > window.innerHeight - 100) {
             oz = (window.innerHeight - 100) / h;
         }
         images[i].rect = {
             y0: voffset,
             x0: hoffset,
-            x1: w,
-            y1: h
+            width: w,
+            height: h
         };
         images[i].oz = oz;
         hoffset += w;
@@ -120,7 +122,7 @@ function drawImage(key, ctx) {
         image = key;
     }
     var rect = image.rect;
-    ctx.drawImage(image.img, rect.x0, rect.y0, rect.x1, rect.y1);
+    ctx.drawImage(image.img, rect.x0, rect.y0, rect.width, rect.height);
 }
 
 function zoom(key, startTime, in_zoom) {
@@ -140,10 +142,10 @@ function zoom(key, startTime, in_zoom) {
         ti = {
             img: image.img,
             rect: {
-                x0: rect.x0 - (rect.x1 * z) / 2,
-                y0: rect.y0 - (rect.y1 * z) / 2,
-                x1: rect.x1 + (rect.x1 * z),
-                y1: rect.y1 + (rect.y1 * z)
+                x0: rect.x0 - (rect.width * z) / 2,
+                y0: rect.y0 - (rect.height * z) / 2,
+                width: rect.width * (1 + z),
+                height: rect.height * (1 + z)
             },
             title: image.title
         }
@@ -156,8 +158,8 @@ function zoom(key, startTime, in_zoom) {
             rect: {
                 x0: 40,
                 y0: 40,
-                x1: rect.x1 + (rect.x1 * z),
-                y1: rect.y1 + (rect.y1 * z)
+                width: rect.width * (1 + z),
+                height: rect.height * (1 + z)
             },
             title: image.title
         }
@@ -179,19 +181,19 @@ function zoom(key, startTime, in_zoom) {
     fgctx.restore();
 
     fgctx.beginPath();
-    fgctx.rect(rect.x0, rect.y0 + rect.y1 - th, rect.x1, th);
+    fgctx.rect(rect.x0, rect.y0 + rect.height - th, rect.width, th);
     fgctx.fillStyle = "rgba(0,0,0,0.8)";
     fgctx.fill();
 
     var s = image.title + " [" + image.img.width + "x" + image.img.height + "]";
     fgctx.font = '16pt Calibri';
     fgctx.textAlign = 'right';
-    fgctx.fillStyle = '#1f1f1f';
-    fgctx.lineWidth = 4;
-    fgctx.strokeText(s, rect.x0 + rect.x1 - 8, rect.y0 + rect.y1 - 8);
+//    fgctx.fillStyle = '#1f1f1f';
+//    fgctx.lineWidth = 4;
+//    fgctx.strokeText(s, rect.x0 + rect.width - 8, rect.y0 + rect.height - 8);
     fgctx.fillStyle = '#eee';
     fgctx.font = '16pt Calibri';
-    fgctx.fillText(s, rect.x0 + rect.x1 - 8, rect.y0 + rect.y1 - 8);
+    fgctx.fillText(s, rect.x0 + rect.width - 8, rect.y0 + rect.height - 8);
 
     requestAnimFrame(function () {
         zoom(key, startTime, in_zoom);
@@ -220,7 +222,6 @@ function prev() {
     if (selectedImage.key == "" || Object.keys(images).indexOf(selectedImage.key) == 0) {
         selectedImage.key = Object.keys(images).slice(-1)[0];
     } else {
-        console.log(Object.keys(images)[Object.keys(images).indexOf(selectedImage.key) - 1], Object.keys(images).indexOf(selectedImage.key))
         selectedImage.key = Object.keys(images)[Object.keys(images).indexOf(selectedImage.key) - 1];
     }
     selectImage(selectedImage.key, selectedImage.in_zoom);
