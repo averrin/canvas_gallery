@@ -1,3 +1,10 @@
+/*
+ * TODO:
+ *  zoomout animation
+ *  button signs instead chars
+ */
+
+
 window.requestAnimFrame = (function (callback) {
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
         function (callback) {
@@ -11,8 +18,11 @@ var fg = document.getElementById('layer2');
 var bgctx = bg.getContext('2d');
 var fgctx = fg.getContext('2d');
 window.onresize = recalc;
-var selectedImage = {key: "", in_zoom: false};
+var selectedImage = {key: "", in_zoom: false, col: 0, row: 0};
 window.defaultState = "";
+var nav = [];
+window.h = 180;
+
 
 //function reset() {
 //    bgctx.clearRect(0, 0, bg.width, bg.height);
@@ -24,13 +34,12 @@ window.defaultState = "";
 //}
 
 function redraw() {
-    console.log("REDRAW");
     bgctx.clearRect(0, 0, bg.width, bg.height);
     for (var i in images) {
         drawImage(i, bgctx);
     }
 
-    var s = "Use -> and <- keys for item selection; Enter - toggle zoom";
+    var s = "Use arrow keys for item selection; Enter - toggle zoom";
     bgctx.font = '20pt Calibri';
     bgctx.fillStyle = '#1f1f1f';
     bgctx.fillStyle = '#eee';
@@ -38,29 +47,31 @@ function redraw() {
 //    window.defaultState = bg.toDataURL("image/png");
 
     selectedImage.in_zoom = false;
-    if(selectedImage.key != "") {
-        selectImage(selectedImage.key, selectedImage.in_zoom);
-    }else{
-        next();
-    }
+    selectImage(selectedImage.key, selectedImage.in_zoom);
 }
 function recalc() {
-    console.log("RECALC");
+    nav = [];
     bgctx.canvas.width = window.innerWidth - 40;
     bgctx.canvas.height = window.innerHeight - 20;
     fgctx.canvas.width = window.innerWidth - 40;
     fgctx.canvas.height = window.innerHeight - 20;
     var hoffset = 40;
     var voffset = 40;
-    var h = 180;
+    var n = 0;
+    var m = 0;
 
     for (var i in images) {
+        if(selectedImage.key == "") {
+            selectedImage.key = i;
+        }
         var img = images[i].img;
-        var k = h / img.height;
+        var k = window.h / img.height;
         var w = img.width * k;
         if (hoffset + w > window.innerWidth) {
-            voffset += h;
+            voffset += window.h;
             hoffset = 40;
+            m += 1;
+            n = 0;
         }
         var oz = (window.innerWidth - 160) / w;
         if ( h*oz > window.innerHeight - 100) {
@@ -73,10 +84,25 @@ function recalc() {
             height: h
         };
         images[i].oz = oz;
+
+        if(typeof nav[m] == "undefined"){
+            nav[m] = []
+        }
+        nav[m][n] = i;
+
+        images[i].col = n;
+        images[i].row = m;
         hoffset += w;
+        n += 1;
+    }
+
+    if(window.h > (window.innerHeight - 20) / (m+1)){
+        window.h = (window.innerHeight - 20) / (m+1);
+        recalc()
     }
 
     redraw();
+    window.h = 180;
 }
 
 var images = {};
@@ -111,8 +137,13 @@ var sources = {
     bridge: 'images/eight.jpg',
     rain: 'images/nine.jpg',
     roof: 'images/10.jpg',
-    clouds: 'images/11.jpg',
-    night: 'images/12.jpg'
+    11: 'images/11.jpg',
+    12: 'images/12.jpg',
+    13: 'images/13.jpg',
+    14: 'images/14.jpg',
+    15: 'images/15.png',
+    16: 'images/16.jpg',
+    17: 'images/17.jpg'
 };
 
 function drawImage(key, ctx) {
@@ -211,20 +242,47 @@ loadImages(sources, function (images) {
 });
 
 function next() {
-    if (selectedImage.key == "" || Object.keys(images).indexOf(selectedImage.key) + 1 == Object.keys(images).length) {
-        selectedImage.key = Object.keys(images)[0];
-    } else {
-        selectedImage.key = Object.keys(images)[Object.keys(images).indexOf(selectedImage.key) + 1];
+    var i = selectedImage;
+    i.col += 1;
+    if(i.col > nav[i.row].length - 1){
+        i.col = 0;
     }
-    selectImage(selectedImage.key, selectedImage.in_zoom);
+    i.key = nav[i.row][i.col];
+    selectImage(i.key, i.in_zoom);
 }
 function prev() {
-    if (selectedImage.key == "" || Object.keys(images).indexOf(selectedImage.key) == 0) {
-        selectedImage.key = Object.keys(images).slice(-1)[0];
-    } else {
-        selectedImage.key = Object.keys(images)[Object.keys(images).indexOf(selectedImage.key) - 1];
+    var i = selectedImage;
+    i.col -= 1;
+    if(i.col < 0){
+        i.col = nav[i.row].length - 1;
     }
-    selectImage(selectedImage.key, selectedImage.in_zoom);
+    i.key = nav[i.row][i.col];
+    selectImage(i.key, i.in_zoom);
+}
+
+function up(){
+    var i = selectedImage;
+    i.row -= 1;
+    if(i.row < 0){
+        i.row = nav.length - 1;
+    }
+    if(i.col > nav[i.row].length - 1){
+        i.col = nav[i.row].length - 1;
+    }
+    i.key = nav[i.row][i.col];
+    selectImage(i.key, i.in_zoom);
+}
+function down(){
+    var i = selectedImage;
+    i.row += 1;
+    if(i.row > nav.length - 1){
+        i.row = 0;
+    }
+    if(i.col > nav[i.row].length - 1){
+        i.col = nav[i.row].length - 1;
+    }
+    i.key = nav[i.row][i.col];
+    selectImage(i.key, i.in_zoom);
 }
 
 function show() {
@@ -242,6 +300,12 @@ document.addEventListener('keydown', function (e) {
     }
     if (e.keyIdentifier == "Left") {
         prev();
+    }
+    if (e.keyIdentifier == "Up") {
+        up();
+    }
+    if (e.keyIdentifier == "Down") {
+        down();
     }
     if (e.keyIdentifier == "Enter") {
         if (selectedImage.in_zoom) {
