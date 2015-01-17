@@ -11,7 +11,7 @@
         }
     </style>
 </head>
-<body>
+<body onkeydown="keyEvent(event)">
 <div style="position: relative;">
     <canvas id="layer1"
             style="position: absolute; left: 0; top: 0; z-index: 0;">Loading...</canvas>
@@ -19,7 +19,7 @@
             style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
     <canvas id="hidden"
             style="position: absolute; left: 0; top: 0; z-index: 2; display: none"></canvas>
-    <canvas id="loader"
+    <canvas id="sprites"
             style="position: absolute; left: 0; top: 0; z-index: 0; display: none"></canvas>
 </div>
 <script src="main.js"></script>

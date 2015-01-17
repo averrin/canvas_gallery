@@ -2,9 +2,43 @@
  * TODO:
  *  zoomout animation
  *  optimize full view animation
- *  preloader
  */
 
+var sources = {
+    stairs: 'images/one.jpg',
+    sky: 'images/two.jpg',
+    view: 'images/three.jpg',
+    shadowrun: 'images/four.jpg',
+    light: 'images/five.jpg',
+    highway: 'images/six.jpg',
+    poster: 'images/seven.jpg',
+    bridge: 'images/eight.jpg',
+    rain: 'images/nine.jpg',
+    roof: 'images/10.jpg',
+    11: 'images/11.jpg',
+    12: 'images/12.jpg',
+    13: 'images/13.jpg',
+    14: 'images/14.jpg',
+    15: 'images/15.png',
+    16: 'images/16.jpg',
+    17: 'images/17.jpg'
+};
+
+var bg = document.getElementById('layer1');
+var hidden = document.getElementById('hidden');
+var sprites = document.getElementById('sprites');
+var bgctx = bg.getContext('2d');
+var hdctx = hidden.getContext('2d');
+var sctx = sprites.getContext('2d');
+
+hdctx.canvas.width = window.innerWidth - 40;
+hdctx.canvas.height = window.innerHeight - 20;
+sctx.canvas.width = window.innerWidth - 40;
+sctx.canvas.height = 100;
+hdctx.strokeStyle = "#eee";
+hdctx.lineWidth = 4;
+var loaderFrame = 0;
+var loading = true;
 
 window.requestAnimFrame = (function (callback) {
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
@@ -13,61 +47,44 @@ window.requestAnimFrame = (function (callback) {
         };
 })();
 
+function prepareAnimations() {
+    hdctx.translate(100, 100);
+    for (var i = 0; i < 20; i++) {
+        var h = 40 * (Math.sqrt(3) / 2);
+        var cy = 20 + (h / 3);
+        var cx = 40;
 
-var bg = document.getElementById('layer1');
-var fg = document.getElementById('layer2');
-var hidden = document.getElementById('hidden');
-var loader = document.getElementById('loader');
-var bgctx = bg.getContext('2d');
-var fgctx = fg.getContext('2d');
-var hdctx = hidden.getContext('2d');
-var lctx = loader.getContext('2d');
+        hdctx.beginPath();
+        hdctx.moveTo(20, 20);
+        hdctx.lineTo(60, 20);
+        hdctx.lineTo(40, 20 + h);
+        hdctx.closePath();
+        hdctx.stroke();
+        hdctx.beginPath();
 
-hdctx.canvas.width = window.innerWidth - 40;
-hdctx.canvas.height = window.innerHeight - 20;
-lctx.canvas.width = window.innerWidth - 40;
-lctx.canvas.height = 100;
-hdctx.strokeStyle = "#eee";
-hdctx.lineWidth = 4;
-var loaderFrame = 0;
-var loading = true;
+        var imgData = hdctx.getImageData(100, 100, 80, 80);
+        sctx.putImageData(imgData, 80 * i, 0);
+        hdctx.clearRect(0, 0, 100, 100);
 
-hdctx.translate(100, 100);
-for(var i = 0; i < 20; i++) {
-    var h = 40 * (Math.sqrt(3)/2);
-    var cy     = 20+(h/3);
-    var cx     = 40;
+        hdctx.translate(cx, cy);
+        hdctx.rotate((Math.PI / 180) * 6);
+        hdctx.translate(-cx, -cy);
 
-    hdctx.beginPath();
-    hdctx.moveTo(20, 20);
-    hdctx.lineTo(60, 20);
-    hdctx.lineTo(40, 20+h);
-    hdctx.closePath();
-    hdctx.stroke();
-    hdctx.beginPath();
-
-    var imgData=hdctx.getImageData(100,100,80,80);
-    lctx.putImageData(imgData,80 * i,0);
-    hdctx.clearRect(0,0,100,100);
-
-    hdctx.translate(cx, cy);
-    hdctx.rotate( (Math.PI / 180) * 6);
-    hdctx.translate(-cx, -cy);
-
+    }
 }
 
-function anim_loader(){
+function animateLoader(){
     if(!loading){
         return;
     }
-    var li = lctx.getImageData(80*loaderFrame,0,80,80);
+    var li = sctx.getImageData(80*loaderFrame,0,80,80);
     bgctx.putImageData(li, bgctx.canvas.width/2 - 80, bgctx.canvas.height/2 - 40);
     loaderFrame += 1;
     if(loaderFrame >= 20){
         loaderFrame = 0;
     }
     requestAnimFrame(function () {
-        anim_loader();
+        animateLoader();
     });
 }
 
@@ -76,23 +93,16 @@ bgctx.canvas.height = window.innerHeight - 20;
 bgctx.fillStyle = "#eee";
 bgctx.font = '20pt Calibri';
 bgctx.fillText("Loading...", bgctx.canvas.width/2, bgctx.canvas.height/2);
-anim_loader();
+prepareAnimations();
+animateLoader();
 
+var fg = document.getElementById('layer2');
+var fgctx = fg.getContext('2d');
 window.onresize = recalc;
-window.defaultState = "";
 window.h = 180;
 var selectedImage = {key: "", in_zoom: false, col: 0, row: 0};
 var nav = [];
 var lastRect = {};
-
-//function reset() {
-//    bgctx.clearRect(0, 0, bg.width, bg.height);
-//    var imageObj = new Image();
-//    imageObj.onload = function () {
-//        bgctx.drawImage(this, 0, 0);
-//    };
-//    imageObj.src = window.defaultState;
-//}
 
 function redraw() {
     bgctx.clearRect(0, 0, bg.width, bg.height);
@@ -176,7 +186,7 @@ function recalc() {
     }
 
     if(window.h > (window.innerHeight - 20) / (m+1)){
-        window.h = (window.innerHeight - 20) / (m+1); // too small
+        window.h = window.h * 0.8;
         recalc()
     }
     loading = false;
@@ -205,26 +215,6 @@ function loadImages(sources, callback) {
         images[src].title = src;
     }
 }
-
-var sources = {
-    stairs: 'images/one.jpg',
-    sky: 'images/two.jpg',
-    view: 'images/three.jpg',
-    shadowrun: 'images/four.jpg',
-    light: 'images/five.jpg',
-    highway: 'images/six.jpg',
-    poster: 'images/seven.jpg',
-    bridge: 'images/eight.jpg',
-    rain: 'images/nine.jpg',
-    roof: 'images/10.jpg',
-    11: 'images/11.jpg',
-    12: 'images/12.jpg',
-    13: 'images/13.jpg',
-    14: 'images/14.jpg',
-    15: 'images/15.png',
-    16: 'images/16.jpg',
-    17: 'images/17.jpg'
-};
 
 function drawImage(key, ctx) {
     if (typeof key == "string") {
@@ -290,7 +280,7 @@ function zoom(key, startTime, in_zoom) {
     }
 
     //fgctx.clearRect(0, 0, bg.width, bg.height);
-    fgctx.clearRect(lastRect.x0, lastRect.y0, lastRect.width, lastRect.height)
+    fgctx.clearRect(lastRect.x0, lastRect.y0, lastRect.width, lastRect.height);
     fgctx.save();
 
     fgctx.shadowColor = '#0a0a0a';
@@ -387,24 +377,27 @@ function normal() {
     selectImage(selectedImage.key, selectedImage.in_zoom);
 }
 
-document.addEventListener('keydown', function (e) {
-    if (e.keyIdentifier == "Right") {
-        next();
+function keyEvent(event) {
+    var key = event.keyCode || event.which;
+    switch(key) {
+        case 37:
+            prev();
+            break;
+        case 38:
+            up();
+            break;
+        case 39:
+            next();
+            break;
+        case 40:
+            down();
+            break;
+        case 13:
+            if (selectedImage.in_zoom) {
+                show();
+            } else {
+                normal()
+            }
+            break;
     }
-    if (e.keyIdentifier == "Left") {
-        prev();
-    }
-    if (e.keyIdentifier == "Up") {
-        up();
-    }
-    if (e.keyIdentifier == "Down") {
-        down();
-    }
-    if (e.keyIdentifier == "Enter") {
-        if (selectedImage.in_zoom) {
-            show();
-        } else {
-            normal()
-        }
-    }
-});
+}
