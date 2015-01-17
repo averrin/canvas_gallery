@@ -2,6 +2,7 @@
  * TODO:
  *  zoomout animation
  *  optimize full view animation
+ *  preloader
  */
 
 
@@ -15,8 +16,67 @@ window.requestAnimFrame = (function (callback) {
 
 var bg = document.getElementById('layer1');
 var fg = document.getElementById('layer2');
+var hidden = document.getElementById('hidden');
+var loader = document.getElementById('loader');
 var bgctx = bg.getContext('2d');
 var fgctx = fg.getContext('2d');
+var hdctx = hidden.getContext('2d');
+var lctx = loader.getContext('2d');
+
+hdctx.canvas.width = window.innerWidth - 40;
+hdctx.canvas.height = window.innerHeight - 20;
+lctx.canvas.width = window.innerWidth - 40;
+lctx.canvas.height = 100;
+hdctx.strokeStyle = "#eee";
+hdctx.lineWidth = 4;
+var loaderFrame = 0;
+var loading = true;
+
+hdctx.translate(100, 100);
+for(var i = 0; i < 20; i++) {
+    var h = 40 * (Math.sqrt(3)/2);
+    var cy     = 20+(h/3);
+    var cx     = 40;
+
+    hdctx.beginPath();
+    hdctx.moveTo(20, 20);
+    hdctx.lineTo(60, 20);
+    hdctx.lineTo(40, 20+h);
+    hdctx.closePath();
+    hdctx.stroke();
+    hdctx.beginPath();
+
+    var imgData=hdctx.getImageData(100,100,80,80);
+    lctx.putImageData(imgData,80 * i,0);
+    hdctx.clearRect(0,0,100,100);
+
+    hdctx.translate(cx, cy);
+    hdctx.rotate( (Math.PI / 180) * 6);
+    hdctx.translate(-cx, -cy);
+
+}
+
+function anim_loader(){
+    if(!loading){
+        return;
+    }
+    var li = lctx.getImageData(80*loaderFrame,0,80,80);
+    bgctx.putImageData(li, bgctx.canvas.width/2 - 80, bgctx.canvas.height/2 - 40);
+    loaderFrame += 1;
+    if(loaderFrame >= 20){
+        loaderFrame = 0;
+    }
+    requestAnimFrame(function () {
+        anim_loader();
+    });
+}
+
+bgctx.canvas.width = window.innerWidth - 40;
+bgctx.canvas.height = window.innerHeight - 20;
+bgctx.fillStyle = "#eee";
+bgctx.font = '20pt Calibri';
+bgctx.fillText("Loading...", bgctx.canvas.width/2, bgctx.canvas.height/2);
+anim_loader();
 
 window.onresize = recalc;
 window.defaultState = "";
@@ -119,6 +179,7 @@ function recalc() {
         window.h = (window.innerHeight - 20) / (m+1); // too small
         recalc()
     }
+    loading = false;
 
     redraw();
     window.h = 180;
